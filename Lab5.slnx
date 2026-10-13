@@ -1,0 +1,10 @@
+<Solution>
+  <Project Path="HistoryService/HistoryService.csproj"/>
+  <Project Path="StudentService/StudentService.csproj"/>
+  <Project Path="TeacherService/TeacherService.csproj"/>
+  <Project Path="Contracts/Contracts.csproj"/>
+  <Project Path="SessionService/SessionService.csproj"/>
+  <Project Path="HistoryService.Tests/HistoryService.Tests.csproj"/>
+  <Project Path="TeacherService.Tests/TeacherService.Tests.csproj"/>
+  <Project Path="StudentService.Tests/StudentService.Tests.csproj"/>
+</Solution>

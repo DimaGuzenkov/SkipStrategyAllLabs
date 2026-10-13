@@ -1,0 +1,7 @@
+{
+    "dotnet.defaultSolution": "Lab.slnx",
+    "csharp-dev-tools.solutionViewer.selectedWorkspaceSolutions": [
+        "HistoryService.slnx",
+        "Lab.slnx"
+    ]
+}

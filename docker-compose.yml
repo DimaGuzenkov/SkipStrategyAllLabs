@@ -1,0 +1,219 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: lab5-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dev -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: lab5-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: dev
+      RABBITMQ_DEFAULT_PASS: dev
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  history:
+    build:
+      context: .
+      dockerfile: HistoryService/Dockerfile
+    container_name: lab5-history
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      ConnectionStrings__HistoryDb: "Host=postgres;Port=5432;Database=history;Username=dev;Password=dev"
+      RabbitMq__Host: "rabbitmq"
+      RabbitMq__User: "dev"
+      RabbitMq__Pass: "dev"
+    ports:
+      - "5000:8080"
+
+  sessions:
+    build:
+      context: .
+      dockerfile: SessionService/Dockerfile
+    container_name: lab5-sessions
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      ConnectionStrings__SessionDb: "Host=postgres;Port=5432;Database=sessions;Username=dev;Password=dev"
+    ports:
+      - "5010:8080"
+
+  teacher-calculus:
+    build:
+      context: .
+      dockerfile: TeacherService/Dockerfile
+    container_name: lab5-teacher-calculus
+    restart: unless-stopped
+    depends_on:
+      history:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      SUBJECT: Calculus
+      Endpoints__HistoryUrl: "http://history:8080"
+      ConnectionStrings__TeacherDb: "Data Source=/data/teacher.db"
+      RabbitMq__Host: "rabbitmq"
+      RabbitMq__User: "dev"
+      RabbitMq__Pass: "dev"
+    volumes:
+      - teacher-calculus-data:/data
+    ports:
+      - "5001:8080"
+
+  teacher-linear-algebra:
+    build:
+      context: .
+      dockerfile: TeacherService/Dockerfile
+    container_name: lab5-teacher-linear-algebra
+    restart: unless-stopped
+    depends_on:
+      history:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      SUBJECT: LinearAlgebra
+      Endpoints__HistoryUrl: "http://history:8080"
+      ConnectionStrings__TeacherDb: "Data Source=/data/teacher.db"
+      RabbitMq__Host: "rabbitmq"
+      RabbitMq__User: "dev"
+      RabbitMq__Pass: "dev"
+    volumes:
+      - teacher-linear-algebra-data:/data
+    ports:
+      - "5002:8080"
+
+  teacher-discrete-math:
+    build:
+      context: .
+      dockerfile: TeacherService/Dockerfile
+    container_name: lab5-teacher-discrete-math
+    restart: unless-stopped
+    depends_on:
+      history:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      SUBJECT: DiscreteMath
+      Endpoints__HistoryUrl: "http://history:8080"
+      ConnectionStrings__TeacherDb: "Data Source=/data/teacher.db"
+      RabbitMq__Host: "rabbitmq"
+      RabbitMq__User: "dev"
+      RabbitMq__Pass: "dev"
+    volumes:
+      - teacher-discrete-math-data:/data
+    ports:
+      - "5003:8080"
+
+  teacher-programming:
+    build:
+      context: .
+      dockerfile: TeacherService/Dockerfile
+    container_name: lab5-teacher-programming
+    restart: unless-stopped
+    depends_on:
+      history:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      SUBJECT: Programming
+      Endpoints__HistoryUrl: "http://history:8080"
+      ConnectionStrings__TeacherDb: "Data Source=/data/teacher.db"
+      RabbitMq__Host: "rabbitmq"
+      RabbitMq__User: "dev"
+      RabbitMq__Pass: "dev"
+    volumes:
+      - teacher-programming-data:/data
+    ports:
+      - "5004:8080"
+
+  teacher-physics:
+    build:
+      context: .
+      dockerfile: TeacherService/Dockerfile
+    container_name: lab5-teacher-physics
+    restart: unless-stopped
+    depends_on:
+      history:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      SUBJECT: Physics
+      Endpoints__HistoryUrl: "http://history:8080"
+      ConnectionStrings__TeacherDb: "Data Source=/data/teacher.db"
+      RabbitMq__Host: "rabbitmq"
+      RabbitMq__User: "dev"
+      RabbitMq__Pass: "dev"
+    volumes:
+      - teacher-physics-data:/data
+    ports:
+      - "5005:8080"
+
+  teacher-english:
+    build:
+      context: .
+      dockerfile: TeacherService/Dockerfile
+    container_name: lab5-teacher-english
+    restart: unless-stopped
+    depends_on:
+      history:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      SUBJECT: English
+      Endpoints__HistoryUrl: "http://history:8080"
+      ConnectionStrings__TeacherDb: "Data Source=/data/teacher.db"
+      RabbitMq__Host: "rabbitmq"
+      RabbitMq__User: "dev"
+      RabbitMq__Pass: "dev"
+    volumes:
+      - teacher-english-data:/data
+    ports:
+      - "5006:8080"
+
+volumes:
+  pg-data:
+  teacher-calculus-data:
+  teacher-linear-algebra-data:
+  teacher-discrete-math-data:
+  teacher-programming-data:
+  teacher-physics-data:
+  teacher-english-data:
